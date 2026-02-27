@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Hack - Claude Code Plugin</title>
+    <meta name="description" content="Comprehensive Claude Code plugin for intelligent resume optimization, professional PDF design, and career document management.">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --bg: #ffffff;
+            --bg-light: #f9fafb;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --accent: #7c3aed;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .header .tagline {
+            font-size: 20px;
+            opacity: 0.95;
+            font-weight: 500;
+            margin-bottom: 32px;
+        }
+
+        .header .cta {
+            display: inline-flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            padding: 80px 20px;
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            text-align: center;
+            color: var(--text-light);
+            margin-bottom: 48px;
+        }
+
+        .features {
+            background: var(--bg-light);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-top: 48px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 36px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        .skills-section {
+            background: white;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .skill-card {
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            transition: border-color 0.2s;
+        }
+
+        .skill-card:hover {
+            border-color: var(--primary);
+        }
+
+        .skill-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--bg-light);
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        .skill-card h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .skill-card p {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .cta-section p {
+            font-size: 18px;
+            opacity: 0.95;
+            margin-bottom: 32px;
+        }
+
+        .code-block {
+            background: rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            text-align: left;
+            max-width: 600px;
+            margin: 0 auto 32px;
+            overflow-x: auto;
+        }
+
+        .footer {
+            background: var(--text);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 48px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--primary);
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+
+            .feature-grid,
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Resume Hack</h1>
+        <p class="tagline">Intelligent Resume Optimization & Professional PDF Design</p>
+        <p style="opacity: 0.9; max-width: 700px; margin: 0 auto;">
+            A comprehensive Claude Code plugin for crafting perfect resumes, cover letters, and career documents with AI-powered insights from hiring managers and HR professionals.
+        </p>
+        <div class="cta">
+            <a href="https://github.com/yennanliu/resume-hack" class="btn btn-primary">View on GitHub</a>
+            <a href="#skills" class="btn btn-secondary">Explore Skills</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="container">
+            <h2 class="section-title">Key Features</h2>
+            <p class="section-subtitle">Everything you need to land your dream job</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Auto-Optimization</h3>
+                    <p>Automatically tailor your resume to any job description with intelligent keyword matching and ATS optimization.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Professional Design</h3>
+                    <p>Transform plain text into stunning PDF resumes with 5 professional design styles optimized for your industry.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👔</div>
+                    <h3>HR Insights</h3>
+                    <p>Get feedback from HR and hiring manager perspectives to understand what recruiters really look for.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>ATS Compatible</h3>
+                    <p>Ensure your resume passes Applicant Tracking Systems with compatibility scoring and format optimization.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Skills Gap Analysis</h3>
+                    <p>Identify missing skills and get actionable learning plans to bridge the gap with target roles.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💪</div>
+                    <h3>Impact Amplification</h3>
+                    <p>Transform weak task-oriented bullets into powerful, results-driven achievement statements with metrics.</p>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-number">12</span>
+                    <span class="stat-label">Specialized Skills</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">5</span>
+                    <span class="stat-label">Design Styles</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">9,000+</span>
+                    <span class="stat-label">Lines of Guidance</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section features">
+        <div class="container">
+            <h2 class="section-title">Multi-Format Support</h2>
+            <p class="section-subtitle">Create every document you need for your job search</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>1-Page Resumes</h3>
+                    <p>Perfect for tech, consulting, and most US corporate positions. Optimized for 6-second scan test.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3>Academic CVs</h3>
+                    <p>Comprehensive curriculum vitae for academic, research, and international positions with publications.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💼</div>
+                    <h3>Portfolio Summaries</h3>
+                    <p>Project showcases with quantified impact for technical, creative, and product roles.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">✉️</div>
+                    <h3>Cover Letters</h3>
+                    <p>Personalized, compelling cover letters that tell your story and demonstrate company fit.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section skills-section" id="skills">
+        <div class="container">
+            <h2 class="section-title">12 Specialized Skills</h2>
+            <p class="section-subtitle">Comprehensive toolkit for every stage of your job application</p>
+
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <span class="skill-tag">CORE</span>
+                    <h4>/resume-hack:optimize</h4>
+                    <p>Auto-tailor resume to job description with ATS optimization and keyword matching</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">CORE</span>
+                    <h4>/resume-hack:hiring-manager-review</h4>
+                    <p>Technical depth, culture fit, and growth trajectory analysis from hiring manager lens</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">CORE</span>
+                    <h4>/resume-hack:hr-review</h4>
+                    <p>HR screening perspective with compliance check and first-impression analysis</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">CORE</span>
+                    <h4>/resume-hack:ats-check</h4>
+                    <p>ATS compatibility scoring (0-100) with format optimization recommendations</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">DESIGN</span>
+                    <h4>/resume-hack:design</h4>
+                    <p>Transform to professional PDF with 5 design styles (Modern, Business, Creative, Minimal, Academic)</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">GENERATION</span>
+                    <h4>/resume-hack:cover-letter</h4>
+                    <p>Generate personalized cover letters with company research and value proposition</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">GENERATION</span>
+                    <h4>/resume-hack:portfolio</h4>
+                    <p>Create project showcases with impact metrics and technical depth</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">GENERATION</span>
+                    <h4>/resume-hack:cv</h4>
+                    <p>Generate academic/research CVs with publications and grants</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">OPTIMIZATION</span>
+                    <h4>/resume-hack:one-pager</h4>
+                    <p>Condense to single page while maximizing impact and readability</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">ANALYSIS</span>
+                    <h4>/resume-hack:skills-gap</h4>
+                    <p>Identify skill gaps with prioritized learning plans and resource recommendations</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">ANALYSIS</span>
+                    <h4>/resume-hack:keyword-match</h4>
+                    <p>Analyze keyword alignment with job description and optimize density</p>
+                </div>
+
+                <div class="skill-card">
+                    <span class="skill-tag">OPTIMIZATION</span>
+                    <h4>/resume-hack:impact-amplifier</h4>
+                    <p>Transform weak bullets into powerful achievement statements with quantified results</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section cta-section">
+        <div class="container">
+            <h2>Get Started Now</h2>
+            <p>Install the Resume Hack plugin and transform your job search</p>
+
+            <div class="code-block">
+# Clone the repository<br>
+git clone https://github.com/yennanliu/resume-hack.git<br>
+<br>
+# Copy to Claude skills directory<br>
+cp -r resume-hack ~/.claude/skills/
+            </div>
+
+            <p style="margin-bottom: 24px;">Then invoke any skill:</p>
+
+            <div class="code-block">
+/resume-hack:optimize<br>
+/resume-hack:design<br>
+/resume-hack:hiring-manager-review
+            </div>
+
+            <a href="https://github.com/yennanliu/resume-hack" class="btn btn-primary">View Documentation</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>Built with ❤️ for job seekers everywhere</p>
+            <p style="margin-top: 12px; opacity: 0.8;">
+                <a href="https://github.com/yennanliu/resume-hack">GitHub</a> •
+                <a href="https://github.com/yennanliu/resume-hack/issues">Issues</a> •
+                <a href="https://github.com/yennanliu/resume-hack/blob/main/LICENSE">MIT License</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

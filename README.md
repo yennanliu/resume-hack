@@ -2,6 +2,8 @@
 
 A comprehensive Claude Code plugin for intelligent resume optimization, tailored to job descriptions with professional insights from hiring managers and HR perspectives.
 
+**📚 [View Documentation Site](https://yennanliu.github.io/resume-hack/)**
+
 ## Features
 
 - **Auto-Resume Optimization** - Automatically tailor resumes to specific job descriptions
