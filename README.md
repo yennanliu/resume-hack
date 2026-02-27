@@ -13,6 +13,7 @@ A comprehensive Claude Code plugin for intelligent resume optimization, tailored
 - **Auto-Resume Optimization** - Automatically tailor resumes to specific job descriptions
 - **Multi-Format Support** - 1-page resumes, CVs, portfolios, cover letters
 - **Professional PDF Design** - Transform plain text to beautifully designed PDF resumes
+- **ATS Simulation** - Test against real company systems (FAANG, Enterprise, Startup)
 - **Professional Analysis** - Get insights from hiring manager and HR points of view
 - **ATS Optimization** - Ensure your resume passes Applicant Tracking Systems
 - **Industry-Specific Templates** - Tailored approaches for different industries
@@ -65,6 +66,9 @@ Invoke skills using the `/resume-hack:` prefix:
 
 # Design professional PDF resume
 /resume-hack:design
+
+# Simulate ATS systems (FAANG, Enterprise, Startup)
+/resume-hack:ats-simulator
 ```
 
 ## Skills
@@ -74,6 +78,7 @@ Invoke skills using the `/resume-hack:` prefix:
 - **hiring-manager-review** - Technical and culture-fit analysis
 - **hr-review** - Compliance, screening, and first-impression analysis
 - **ats-check** - Applicant Tracking System compatibility check
+- **ats-simulator** - Simulate real ATS systems (FAANG, Enterprise, Startup) with detailed feedback
 
 ### Document Generation
 - **cover-letter** - Generate personalized cover letters
@@ -104,6 +109,23 @@ Then provide:
 /resume-hack:hiring-manager-review
 
 Provides technical depth, culture fit, and red flag analysis
+```
+
+### Simulate ATS Systems
+```
+/resume-hack:ats-simulator
+
+Test your resume against:
+- FAANG companies (Google, Meta, Amazon, Apple, Netflix)
+- Large enterprises (Workday, Taleo, SAP)
+- Tech startups (Greenhouse, Lever)
+
+Get detailed feedback on:
+- Parsing success rate (what the ATS actually sees)
+- Keyword matching scores
+- Company-specific scoring
+- Pass/fail predictions
+- Specific fixes needed
 ```
 
 ### Design Professional PDF Resume
@@ -151,7 +173,9 @@ resume-hack/
 │   │   └── SKILL.md
 │   ├── impact-amplifier/
 │   │   └── SKILL.md
-│   └── design/
+│   ├── design/
+│   │   └── SKILL.md
+│   └── ats-simulator/
 │       └── SKILL.md
 ├── templates/
 │   ├── RESUME_TEMPLATES.md
