@@ -1,0 +1,343 @@
+name: Dry Run Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  dry-run-install:
+    name: Test Installation (Dry Run)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test installation on ${{ matrix.os }}
+        run: |
+          echo "🧪 Testing plugin installation on ${{ matrix.os }}..."
+
+          # Create test Claude directory
+          TEST_CLAUDE_DIR="/tmp/test-claude/skills"
+          mkdir -p "$TEST_CLAUDE_DIR"
+
+          # Simulate installation
+          cp -r . "$TEST_CLAUDE_DIR/resume-hack"
+
+          echo "✅ Files copied to test directory"
+
+          # Verify installation
+          cd "$TEST_CLAUDE_DIR/resume-hack"
+
+          # Check required files
+          echo "Checking required files..."
+          required_files=("SKILL.md" "README.md" "LICENSE")
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ ERROR: $file not found"
+              exit 1
+            fi
+            echo "✅ $file found"
+          done
+
+          # Check skills directory
+          if [ ! -d "skills" ]; then
+            echo "❌ ERROR: skills directory not found"
+            exit 1
+          fi
+          echo "✅ skills directory found"
+
+          # Count and validate skills
+          skill_count=0
+          for skill_dir in skills/*/; do
+            if [ -d "$skill_dir" ]; then
+              skill_name=$(basename "$skill_dir")
+              if [ ! -f "${skill_dir}SKILL.md" ]; then
+                echo "❌ ERROR: ${skill_dir}SKILL.md not found"
+                exit 1
+              fi
+              echo "✅ $skill_name skill validated"
+              skill_count=$((skill_count + 1))
+            fi
+          done
+
+          echo "✅ Total skills installed: $skill_count"
+
+          if [ $skill_count -ne 12 ]; then
+            echo "⚠️  WARNING: Expected 12 skills, found $skill_count"
+          fi
+
+      - name: Test skill file integrity
+        run: |
+          echo "Testing skill file integrity..."
+
+          cd /tmp/test-claude/skills/resume-hack
+
+          # Check each skill file is readable
+          for skill_file in skills/*/SKILL.md; do
+            if [ -r "$skill_file" ]; then
+              # Check file has content
+              if [ -s "$skill_file" ]; then
+                # Check for markdown headers
+                if grep -q "^#" "$skill_file"; then
+                  echo "✅ $(dirname $skill_file | xargs basename) - Valid markdown"
+                else
+                  echo "⚠️  $(dirname $skill_file | xargs basename) - No headers found"
+                fi
+              else
+                echo "❌ $(dirname $skill_file | xargs basename) - Empty file"
+                exit 1
+              fi
+            else
+              echo "❌ $(dirname $skill_file | xargs basename) - Not readable"
+              exit 1
+            fi
+          done
+
+      - name: Test template files
+        run: |
+          echo "Testing template files..."
+
+          cd /tmp/test-claude/skills/resume-hack
+
+          if [ ! -d "templates" ]; then
+            echo "❌ ERROR: templates directory not found"
+            exit 1
+          fi
+
+          template_count=$(find templates -name "*.md" | wc -l)
+          echo "✅ Found $template_count template files"
+
+          if [ $template_count -lt 1 ]; then
+            echo "❌ ERROR: No template files found"
+            exit 1
+          fi
+
+      - name: Test guidelines
+        run: |
+          echo "Testing guideline files..."
+
+          cd /tmp/test-claude/skills/resume-hack
+
+          if [ ! -d "guidelines" ]; then
+            echo "❌ ERROR: guidelines directory not found"
+            exit 1
+          fi
+
+          guideline_count=$(find guidelines -name "*.md" | wc -l)
+          echo "✅ Found $guideline_count guideline files"
+
+          if [ $guideline_count -lt 1 ]; then
+            echo "❌ ERROR: No guideline files found"
+            exit 1
+          fi
+
+  simulate-usage:
+    name: Simulate Plugin Usage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        run: |
+          echo "Setting up test environment..."
+          TEST_DIR="/tmp/claude-test"
+          mkdir -p "$TEST_DIR/skills/resume-hack"
+          cp -r . "$TEST_DIR/skills/resume-hack/"
+
+      - name: Simulate skill invocation
+        run: |
+          echo "🧪 Simulating skill invocations..."
+
+          TEST_DIR="/tmp/claude-test/skills/resume-hack"
+
+          # List all available skills
+          echo "Available skills:"
+          for skill_dir in $TEST_DIR/skills/*/; do
+            skill_name=$(basename "$skill_dir")
+            echo "  - /resume-hack:$skill_name"
+          done
+
+          # Validate skill files can be read
+          for skill_file in $TEST_DIR/skills/*/SKILL.md; do
+            skill_name=$(basename $(dirname "$skill_file"))
+
+            # Check file is readable and has content
+            if [ -r "$skill_file" ] && [ -s "$skill_file" ]; then
+              # Extract title from first header
+              title=$(head -20 "$skill_file" | grep "^#" | head -1 | sed 's/^# //')
+              if [ -n "$title" ]; then
+                echo "✅ /resume-hack:$skill_name - '$title'"
+              else
+                echo "⚠️  /resume-hack:$skill_name - No title found"
+              fi
+            else
+              echo "❌ /resume-hack:$skill_name - File not readable or empty"
+              exit 1
+            fi
+          done
+
+      - name: Test main skill file
+        run: |
+          echo "Testing main SKILL.md..."
+
+          TEST_DIR="/tmp/claude-test/skills/resume-hack"
+
+          if [ ! -f "$TEST_DIR/SKILL.md" ]; then
+            echo "❌ ERROR: Main SKILL.md not found"
+            exit 1
+          fi
+
+          # Check main skill file structure
+          if grep -q "^# Resume Hack" "$TEST_DIR/SKILL.md"; then
+            echo "✅ Main skill file has title"
+          else
+            echo "⚠️  Main skill file might be missing title"
+          fi
+
+          # Check for skill listing
+          if grep -q "optimize\|design\|review" "$TEST_DIR/SKILL.md"; then
+            echo "✅ Main skill file references subskills"
+          else
+            echo "⚠️  Main skill file might not reference subskills"
+          fi
+
+  test-documentation:
+    name: Test Documentation Links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check README links
+        run: |
+          echo "Checking README.md links..."
+
+          # Check for GitHub repo link
+          if grep -q "github.com/yennanliu/resume-hack" README.md; then
+            echo "✅ GitHub link found"
+          else
+            echo "⚠️  GitHub link might be missing"
+          fi
+
+          # Check for documentation site link
+          if grep -q "yennanliu.github.io/resume-hack" README.md; then
+            echo "✅ Documentation site link found"
+          else
+            echo "⚠️  Documentation site link might be missing"
+          fi
+
+          # Check for installation instructions
+          if grep -q "Installation" README.md; then
+            echo "✅ Installation section found"
+          else
+            echo "⚠️  Installation section might be missing"
+          fi
+
+      - name: Check skill references
+        run: |
+          echo "Checking skill references in README..."
+
+          # Count skill mentions
+          skill_count=$(grep -c "/resume-hack:" README.md || echo "0")
+          echo "Found $skill_count skill references in README"
+
+          if [ $skill_count -lt 5 ]; then
+            echo "⚠️  WARNING: Few skill references found. Expected at least 5."
+          else
+            echo "✅ Adequate skill documentation"
+          fi
+
+  performance-test:
+    name: Performance & Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check plugin size
+        run: |
+          echo "📊 Analyzing plugin size..."
+
+          # Total size
+          total_size_kb=$(du -sk . | cut -f1)
+          total_size_mb=$(echo "scale=2; $total_size_kb / 1024" | bc)
+
+          echo "Total size: ${total_size_mb}MB"
+
+          # Check if size is reasonable (<10MB recommended)
+          if [ $total_size_kb -gt 10240 ]; then
+            echo "⚠️  WARNING: Plugin size exceeds 10MB"
+          else
+            echo "✅ Plugin size is reasonable"
+          fi
+
+          # Breakdown by directory
+          echo ""
+          echo "Size breakdown:"
+          du -sh skills/ templates/ guidelines/ 2>/dev/null | sort -h || true
+
+      - name: Count documentation
+        run: |
+          echo "📈 Documentation statistics..."
+
+          # File counts
+          md_count=$(find . -name "*.md" -type f | wc -l)
+          skill_count=$(find skills -name "SKILL.md" | wc -l)
+
+          echo "Markdown files: $md_count"
+          echo "Skill modules: $skill_count"
+
+          # Line counts
+          total_lines=$(find . -name "*.md" -type f -exec wc -l {} + | tail -1 | awk '{print $1}')
+          echo "Total documentation lines: $total_lines"
+
+          # Check documentation completeness
+          if [ $total_lines -lt 5000 ]; then
+            echo "⚠️  WARNING: Documentation might be incomplete"
+          else
+            echo "✅ Comprehensive documentation"
+          fi
+
+  dry-run-summary:
+    name: Dry Run Summary
+    runs-on: ubuntu-latest
+    needs: [dry-run-install, simulate-usage, test-documentation, performance-test]
+    if: always()
+    steps:
+      - name: Generate test report
+        run: |
+          echo "# Dry Run Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.dry-run-install.result }}" == "success" ]; then
+            echo "✅ Installation test passed on all platforms" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Installation test failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.simulate-usage.result }}" == "success" ]; then
+            echo "✅ Usage simulation passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Usage simulation failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.test-documentation.result }}" == "success" ]; then
+            echo "✅ Documentation check passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Documentation check failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.performance-test.result }}" == "success" ]; then
+            echo "✅ Performance check passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Performance check failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "All critical tests must pass before merging." >> $GITHUB_STEP_SUMMARY

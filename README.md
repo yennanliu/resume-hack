@@ -1,8 +1,12 @@
 # Resume Hack - Claude Code Plugin
 
+[![Validate Plugin](https://github.com/yennanliu/resume-hack/actions/workflows/validate.yml/badge.svg)](https://github.com/yennanliu/resume-hack/actions/workflows/validate.yml)
+[![Deploy to GitHub Pages](https://github.com/yennanliu/resume-hack/actions/workflows/deploy.yml/badge.svg)](https://github.com/yennanliu/resume-hack/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A comprehensive Claude Code plugin for intelligent resume optimization, tailored to job descriptions with professional insights from hiring managers and HR perspectives.
 
-**📚 [View Documentation Site](https://yennanliu.github.io/resume-hack/)**
+**📚 [View Documentation Site](https://yennanliu.github.io/resume-hack/)** | **🚀 [Latest Release](https://github.com/yennanliu/resume-hack/releases)**
 
 ## Features
 
@@ -16,11 +20,26 @@ A comprehensive Claude Code plugin for intelligent resume optimization, tailored
 
 ## Installation
 
+### Quick Install (Recommended)
+```bash
+# Download and run installer from latest release
+curl -fsSL https://github.com/yennanliu/resume-hack/releases/latest/download/install.sh | bash
+```
+
+### Manual Install
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/resume-hack.git
+git clone https://github.com/yennanliu/resume-hack.git
 
 # Copy to Claude skills directory
+cp -r resume-hack ~/.claude/skills/
+```
+
+### From Release
+```bash
+# Download latest release
+wget https://github.com/yennanliu/resume-hack/releases/latest/download/resume-hack-latest.tar.gz
+tar -xzf resume-hack-latest.tar.gz
 cp -r resume-hack ~/.claude/skills/
 ```
 
@@ -147,10 +166,63 @@ resume-hack/
     └── INDUSTRY_SPECIFIC.md
 ```
 
+## Development
+
+### Local Testing
+Run the local test suite before committing:
+```bash
+./scripts/local-test.sh
+```
+
+### CI/CD Pipeline
+- **Validation**: Automatic syntax and structure validation on every push
+- **Dry Run**: Simulates installation and tests all features on PRs
+- **Release**: Automated release creation with version tagging
+- **Deployment**: Auto-deploy documentation site to GitHub Pages
+
+### Testing Workflows
+- `validate.yml` - Runs on every push (syntax, structure, ATS checks)
+- `dry-run.yml` - Runs on PRs (installation simulation, usage tests)
+- `release.yml` - Runs on version tags (creates GitHub releases)
+- `deploy.yml` - Deploys documentation site
+
+## Releases
+
+### Creating a Release
+```bash
+# Tag a new version
+git tag v1.0.0
+git push origin v1.0.0
+
+# CI/CD automatically:
+# - Validates the plugin
+# - Creates release packages
+# - Generates release notes
+# - Publishes to GitHub Releases
+```
+
+### Release Artifacts
+Each release includes:
+- `resume-hack-vX.X.X.tar.gz` - Plugin package (tar)
+- `resume-hack-vX.X.X.zip` - Plugin package (zip)
+- `plugin.json` - Plugin manifest
+- `install.sh` - Quick installer script
+
 ## License
 
 MIT License - See LICENSE file for details
 
 ## Contributing
 
-Contributions welcome! Please submit PRs or issues on GitHub.
+Contributions welcome! Please:
+1. Run `./scripts/local-test.sh` before submitting
+2. Ensure all CI checks pass
+3. Submit PRs with clear descriptions
+4. Report issues on GitHub
+
+## Support
+
+- 📚 [Documentation](https://yennanliu.github.io/resume-hack/)
+- 🐛 [Issues](https://github.com/yennanliu/resume-hack/issues)
+- 💬 [Discussions](https://github.com/yennanliu/resume-hack/discussions)
+- 🚀 [Releases](https://github.com/yennanliu/resume-hack/releases)

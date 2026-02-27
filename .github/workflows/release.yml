@@ -1,0 +1,360 @@
+name: Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  validate-release:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version format
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+
+          echo "Version: $VERSION"
+
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ ERROR: Invalid version format. Must be v*.*.* (e.g., v1.0.0)"
+            exit 1
+          fi
+
+          echo "✅ Version format is valid"
+
+      - name: Run validation checks
+        run: |
+          echo "Running pre-release validation..."
+
+          # Check required files
+          required_files=("SKILL.md" "README.md" "LICENSE")
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ ERROR: Required file $file not found"
+              exit 1
+            fi
+          done
+
+          # Check skills directory
+          if [ ! -d "skills" ]; then
+            echo "❌ ERROR: skills directory not found"
+            exit 1
+          fi
+
+          skill_count=$(find skills -name "SKILL.md" | wc -l)
+          if [ $skill_count -lt 1 ]; then
+            echo "❌ ERROR: No skills found"
+            exit 1
+          fi
+
+          echo "✅ Found $skill_count skills"
+          echo "✅ All validation checks passed"
+
+  create-release-package:
+    name: Create Release Package
+    runs-on: ubuntu-latest
+    needs: validate-release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Create plugin manifest
+        run: |
+          cat > plugin.json << EOF
+          {
+            "name": "resume-hack",
+            "version": "${{ steps.get_version.outputs.version }}",
+            "description": "Comprehensive Claude Code plugin for intelligent resume optimization and professional PDF design",
+            "author": "Resume Hack Contributors",
+            "license": "MIT",
+            "repository": "https://github.com/yennanliu/resume-hack",
+            "homepage": "https://yennanliu.github.io/resume-hack/",
+            "keywords": [
+              "resume",
+              "optimization",
+              "career",
+              "job-search",
+              "ats",
+              "cover-letter",
+              "pdf-design",
+              "hr",
+              "hiring"
+            ],
+            "skills": [
+              "optimize",
+              "hiring-manager-review",
+              "hr-review",
+              "ats-check",
+              "design",
+              "cover-letter",
+              "portfolio",
+              "cv",
+              "one-pager",
+              "skills-gap",
+              "keyword-match",
+              "impact-amplifier"
+            ]
+          }
+          EOF
+
+          echo "✅ Created plugin.json manifest"
+          cat plugin.json
+
+      - name: Create installation script
+        run: |
+          cat > install.sh << 'EOF'
+          #!/bin/bash
+
+          # Resume Hack Plugin Installer
+
+          set -e
+
+          PLUGIN_NAME="resume-hack"
+          CLAUDE_DIR="$HOME/.claude/skills"
+          INSTALL_DIR="$CLAUDE_DIR/$PLUGIN_NAME"
+
+          echo "🚀 Installing Resume Hack plugin..."
+
+          # Create Claude skills directory if it doesn't exist
+          mkdir -p "$CLAUDE_DIR"
+
+          # Check if already installed
+          if [ -d "$INSTALL_DIR" ]; then
+            echo "⚠️  Plugin already installed at $INSTALL_DIR"
+            read -p "Do you want to overwrite? (y/N) " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+              echo "❌ Installation cancelled"
+              exit 1
+            fi
+            rm -rf "$INSTALL_DIR"
+          fi
+
+          # Copy plugin files
+          echo "📦 Copying plugin files..."
+          cp -r . "$INSTALL_DIR"
+
+          # Remove git and github artifacts
+          rm -rf "$INSTALL_DIR/.git" "$INSTALL_DIR/.github" 2>/dev/null || true
+
+          echo "✅ Resume Hack plugin installed successfully!"
+          echo ""
+          echo "📍 Installation location: $INSTALL_DIR"
+          echo ""
+          echo "🎯 Usage:"
+          echo "  /resume-hack:optimize           - Optimize resume for job"
+          echo "  /resume-hack:design             - Design professional PDF"
+          echo "  /resume-hack:hiring-manager-review - Get technical review"
+          echo ""
+          echo "📚 Full documentation: https://yennanliu.github.io/resume-hack/"
+          EOF
+
+          chmod +x install.sh
+          echo "✅ Created install.sh script"
+
+      - name: Package plugin
+        run: |
+          echo "📦 Creating release package..."
+
+          # Create release directory
+          mkdir -p release
+
+          # Copy plugin files
+          cp -r skills templates guidelines SKILL.md README.md LICENSE plugin.json install.sh release/
+
+          # Create tarball
+          cd release
+          tar -czf ../resume-hack-${{ steps.get_version.outputs.version }}.tar.gz *
+          cd ..
+
+          # Create zip
+          cd release
+          zip -r ../resume-hack-${{ steps.get_version.outputs.version }}.zip * -q
+          cd ..
+
+          echo "✅ Created release packages"
+          ls -lh resume-hack-${{ steps.get_version.outputs.version }}.*
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          cat > RELEASE_NOTES.md << 'EOF'
+          # Resume Hack ${{ steps.get_version.outputs.version }}
+
+          ## 📦 Installation
+
+          ### Quick Install (Recommended)
+          ```bash
+          curl -fsSL https://github.com/yennanliu/resume-hack/releases/download/${{ steps.get_version.outputs.version }}/install.sh | bash
+          ```
+
+          ### Manual Install
+          ```bash
+          # Download and extract
+          wget https://github.com/yennanliu/resume-hack/releases/download/${{ steps.get_version.outputs.version }}/resume-hack-${{ steps.get_version.outputs.version }}.tar.gz
+          tar -xzf resume-hack-${{ steps.get_version.outputs.version }}.tar.gz
+
+          # Copy to Claude skills directory
+          cp -r resume-hack ~/.claude/skills/
+          ```
+
+          ## ✨ Features
+
+          - **12 Specialized Skills** for comprehensive resume optimization
+          - **5 Professional Design Styles** for PDF generation
+          - **ATS Optimization** with compatibility scoring
+          - **HR & Hiring Manager Perspectives** for professional insights
+          - **Multi-Format Support** (Resume, CV, Portfolio, Cover Letter)
+          - **9,000+ Lines** of expert guidance
+
+          ## 🎯 Available Skills
+
+          - `/resume-hack:optimize` - Auto-tailor to job description
+          - `/resume-hack:design` - Professional PDF design
+          - `/resume-hack:hiring-manager-review` - Technical review
+          - `/resume-hack:hr-review` - HR screening perspective
+          - `/resume-hack:ats-check` - ATS compatibility
+          - `/resume-hack:cover-letter` - Generate cover letter
+          - `/resume-hack:portfolio` - Project showcase
+          - `/resume-hack:cv` - Academic CV
+          - `/resume-hack:one-pager` - Single-page optimization
+          - `/resume-hack:skills-gap` - Skills gap analysis
+          - `/resume-hack:keyword-match` - Keyword optimization
+          - `/resume-hack:impact-amplifier` - Strengthen achievements
+
+          ## 📚 Documentation
+
+          Full documentation: https://yennanliu.github.io/resume-hack/
+
+          ## 🐛 Bug Reports
+
+          Report issues: https://github.com/yennanliu/resume-hack/issues
+          EOF
+
+          echo "✅ Generated release notes"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: Resume Hack ${{ steps.get_version.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            resume-hack-${{ steps.get_version.outputs.version }}.tar.gz
+            resume-hack-${{ steps.get_version.outputs.version }}.zip
+            plugin.json
+            install.sh
+          draft: false
+          prerelease: false
+
+  publish-marketplace:
+    name: Publish to Marketplace
+    runs-on: ubuntu-latest
+    needs: create-release-package
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare marketplace submission
+        run: |
+          echo "📤 Preparing Claude Code marketplace submission..."
+
+          cat > MARKETPLACE_SUBMISSION.md << 'EOF'
+          # Resume Hack - Claude Code Plugin
+
+          ## Description
+          Comprehensive plugin for intelligent resume optimization, professional PDF design,
+          and career document management with insights from HR and hiring managers.
+
+          ## Features
+          - 12 specialized skills for complete job application workflow
+          - 5 professional design styles for PDF generation
+          - ATS optimization with compatibility scoring
+          - HR and hiring manager perspective analysis
+          - Multi-format support (Resume, CV, Portfolio, Cover Letter)
+
+          ## Installation
+          ```bash
+          cp -r resume-hack ~/.claude/skills/
+          ```
+
+          ## Repository
+          https://github.com/yennanliu/resume-hack
+
+          ## Documentation
+          https://yennanliu.github.io/resume-hack/
+
+          ## License
+          MIT
+          EOF
+
+          echo "✅ Marketplace submission prepared"
+          cat MARKETPLACE_SUBMISSION.md
+
+      - name: Create marketplace artifact
+        run: |
+          echo "Creating marketplace package..."
+
+          # Note: Actual marketplace submission process would be manual or via API
+          # This creates the necessary files for submission
+
+          echo "✅ Marketplace artifact created"
+          echo "ℹ️  Manual submission may be required for Claude Code marketplace"
+          echo "📝 Review MARKETPLACE_SUBMISSION.md for submission details"
+
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [create-release-package, publish-marketplace]
+    if: always()
+    steps:
+      - name: Release summary
+        run: |
+          echo "# Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.create-release-package.result }}" == "success" ]; then
+            echo "✅ Release package created successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Release package creation failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ needs.publish-marketplace.result }}" == "success" ] || [ "${{ needs.publish-marketplace.result }}" == "skipped" ]; then
+            echo "✅ Marketplace preparation complete" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Marketplace preparation failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Release URL: https://github.com/yennanliu/resume-hack/releases" >> $GITHUB_STEP_SUMMARY
+          echo "📚 Documentation: https://yennanliu.github.io/resume-hack/" >> $GITHUB_STEP_SUMMARY
