@@ -6,6 +6,7 @@ A comprehensive Claude Code plugin for intelligent resume optimization, tailored
 
 - **Auto-Resume Optimization** - Automatically tailor resumes to specific job descriptions
 - **Multi-Format Support** - 1-page resumes, CVs, portfolios, cover letters
+- **Professional PDF Design** - Transform plain text to beautifully designed PDF resumes
 - **Professional Analysis** - Get insights from hiring manager and HR points of view
 - **ATS Optimization** - Ensure your resume passes Applicant Tracking Systems
 - **Industry-Specific Templates** - Tailored approaches for different industries
@@ -41,8 +42,8 @@ Invoke skills using the `/resume-hack:` prefix:
 # Create portfolio summary
 /resume-hack:portfolio
 
-# Full career package
-/resume-hack:career-package
+# Design professional PDF resume
+/resume-hack:design
 ```
 
 ## Skills
@@ -58,6 +59,7 @@ Invoke skills using the `/resume-hack:` prefix:
 - **portfolio** - Create portfolio summaries and project highlights
 - **cv** - Generate academic/research CVs
 - **one-pager** - Optimize for single-page format
+- **design** - Transform plain text to professional PDF resume with HTML/CSS
 
 ### Analysis Tools
 - **skills-gap** - Identify skills gaps vs job requirements
@@ -81,6 +83,22 @@ Then provide:
 /resume-hack:hiring-manager-review
 
 Provides technical depth, culture fit, and red flag analysis
+```
+
+### Design Professional PDF Resume
+```
+/resume-hack:design
+
+Then provide:
+- Your resume content (plain text or existing resume)
+- Target industry (tech, finance, creative, etc.)
+- Preferred style (modern, traditional, minimal, bold)
+
+Outputs:
+- Complete HTML/CSS resume
+- 5 professional design styles to choose from
+- Instructions to convert to PDF
+- ATS-compatible and print-optimized
 ```
 
 ## Plugin Structure
@@ -110,10 +128,13 @@ resume-hack/
 │   │   └── SKILL.md
 │   ├── keyword-match/
 │   │   └── SKILL.md
-│   └── impact-amplifier/
+│   ├── impact-amplifier/
+│   │   └── SKILL.md
+│   └── design/
 │       └── SKILL.md
 ├── templates/
 │   ├── RESUME_TEMPLATES.md
+│   ├── HTML_TEMPLATES.md
 │   ├── CV_TEMPLATES.md
 │   ├── COVER_LETTER_TEMPLATES.md
 │   └── PORTFOLIO_TEMPLATES.md
